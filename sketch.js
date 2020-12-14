@@ -1,157 +1,165 @@
 
-var monkey , monkey_running, monkeyCollide;
-var ground, invisiGround, groundImg;
-var banana ,bananaImage, obstacle, obstacleImage;
-var FoodGroup, obstacleGroup;
-var score = 0;
-var bananaScore = 0;
-var PLAY = 0;
-var END = 1;
-var gameState = PLAY;
+
+var bow , arrow,  background, redB, pinkB, greenB ,blueB ,arrowGroup;
+var bowImage, arrowImage, green_balloonImage, red_balloonImage, pink_balloonImage ,blue_balloonImage, backgroundImage;
+
 
 function preload(){
-  monkey_running = loadAnimation("monkey_0.png","monkey_1.png","monkey_2.png","monkey_3.png","monkey_4.png","monkey_5.png","monkey_6.png","monkey_7.png","monkey_8.png")
   
-  monkeyCollide = loadAnimation("monkey_1.png");
+  backgroundImage = loadImage("background0.png");
   
+  arrowImage = loadImage("arrow0.png");
+  bowImage = loadImage("bow0.png");
+  red_balloonImage = loadImage("red_balloon0.png");
+  green_balloonImage = loadImage("green_balloon0.png");
+  pink_balloonImage = loadImage("pink_balloon0.png");
+  blue_balloonImage = loadImage("blue_balloon0.png");
   
-  groundImg = loadAnimation("ground.jpg") 
+}
+
+
+
+function setup() {
+  createCanvas(600, 600);
   
-  bananaImage = loadImage("banana.png");
-  obstacleImage = loadImage("obstacle.png");
+  //creating background
+  background = createSprite(0,0,600,600);
+  background.addImage(backgroundImage);
+  background.scale = 2.5
+  
+  // creating bow to shoot arrow
+  bow = createSprite(480,220,20,50);
+  bow.addImage(bowImage); 
+  bow.scale = 1;
+  
+   score = 0;
+  
+  //creating groups
+  redB   = new Group();
+  greenB = new Group();
+  blueB  = new Group();
+  pinkB  = new Group();
+  arrowGroup= new Group();
  
-}
-
-function setup(){
- createCanvas(600,300);
-  
-  obstacleGroup = createGroup();
-  bananaGroup = createGroup();
-  
- 
-  monkey = createSprite(80,230,10,10);
-  monkey.scale = 0.12;
-  monkey.addAnimation("monkey", monkey_running);
-  monkey.addAnimation("collide", monkeyCollide);
-  
-    
-  ground = createSprite(300,340,600,10);
-  ground.scale = 1;
-  
-  ground.addAnimation("ground", groundImg);
-  
-  invisiGround = createSprite(300,278,600,7);
-  invisiGround.visible = false;
   
 }
 
-function draw(){
-  background("skyblue");
-  fill("black");
-  text("SURVIVAL TIME: "+score, 470, 20);
-  text("BANANAS COLLECTED: "+bananaScore,300,20);
-  
-  if (gameState === PLAY){
-    obstacles();
-    bananas();
-    score = score + Math.round(getFrameRate()/60);
-    
-    ground.velocityX = -(4+score*1.5/100);
-  
-    if(keyDown("space")&&monkey.y >= 235) {
-      monkey.velocityY = -16; 
+function draw() {
+
+  // moving ground
+    background.velocityX = -3 
+
+    if (background.x < 0){
+      background.x = background.width/2;
     }
   
-    monkey.velocityY = monkey.velocityY + 0.8
+  //moving bow
+  bow.y = World.mouseY
   
-    if (ground.x < 0){
-      ground.x = ground.width/2;
-    }
-    
-    if (monkey.isTouching(bananaGroup)){
-      bananaScore++;  
-      bananaGroup.destroyEach();
-    
-    }
-    
-    if (monkey.isTouching(obstacleGroup)){
-      gameState = END;
-    }
+   // release arrow when space key is pressed
+  if (keyDown("space")) {
+    createArrow();
     
   }
   
-  if (gameState === END){
-    ground.velocityX = 0;
-    
-    monkey.y = 235;
-    monkey.scale = 0.12;
-    monkey.changeAnimation("collide", monkeyCollide);
-    
-    obstacleGroup.setVelocityXEach(0);
-    bananaGroup.setVelocityXEach(0);
-    obstacleGroup.setLifetimeEach(-1);
-    bananaGroup.setLifetimeEach(-1);
-    fill("red")
-    stroke("black")
-    textSize(30);
-    text("GAMEOVER!!!", 220, 170);
-    fill("black");
-    textSize(15);
-    text("Press 'R' to play again", 240, 200);
-    
-    if (keyDown("r")){
-      bananaGroup.destroyEach();
-      obstacleGroup.destroyEach();
-      monkey.changeAnimation("monkey", monkey_running);
-      score = 0;
-      bananaScore = 0;
-      gameState = PLAY; 
+  //creating continous enemies
+  var select_balloon = Math.round(random(1,4));
+  
+  if (World.frameCount % 100 == 0) {
+    if (select_balloon == 1) {
+      redBalloon();
+    } else if (select_balloon == 2) {
+      greenBalloon();
+    } else if (select_balloon == 3) {
+      blueBalloon();
+    } else {
+      pinkBalloon();
     }
   }
   
-  
-  
-  drawSprites(); 
-  
-  monkey.collide(invisiGround);
-}
-
-function bananas(){
-  if (frameCount%80 === 0){
-    
-    banana = createSprite(620,120, 50, 50 )
-    banana.addAnimation("banana", bananaImage);
-    banana.scale = 0.1;
-    banana.velocityX =-(4+score*1.5/100);           
-    banana.lifetime = 220;
-    bananaGroup.add(banana);
-    bananaGroup.add(banana);
-
-    
-  }
-  
-
-  
-}
-
-function obstacles(){
-  if (frameCount%200 === 0){
-    
-    obstacle = createSprite(620,253,50,50);
-    obstacle.addAnimation("rock", obstacleImage);
-    obstacle.setCollider("circle", 0, 0, 180);
-    obstacle.scale = 0.13 ;
-    obstacle.velocityX = -(4+score*1.5/100);
-    obstacle.lifetime = 220;
-    obstacleGroup.add(obstacle);
-    
-  }
-  
-  
+  if (arrowGroup.isTouching(redB)) {
+  redB.destroyEach();
+  arrowGroup.destroyEach();
+    score=score+1;
 }
 
 
 
 
+ if (arrowGroup.isTouching(greenB)) {
+  greenB.destroyEach();
+  arrowGroup.destroyEach();
+  score=score+1;
+}
 
 
+
+ if (arrowGroup.isTouching(blueB)) {
+  blueB.destroyEach();
+  arrowGroup.destroyEach();
+  score=score+1;
+}
+
+
+
+if (arrowGroup.isTouching(pinkB)) {
+  pinkB.destroyEach();
+  arrowGroup.destroyEach();
+  score=score+1;
+}
+
+  
+  drawSprites();
+    text("Score: "+ score, 500,50);
+}
+
+
+function redBalloon() {
+  var red = createSprite(0,Math.round(random(20, 370)), 10, 10);
+  red.addImage(red_balloonImage);
+  red.velocityX = 3;
+  red.lifetime = 150;
+  red.scale = 0.1;
+  redB.add(red);
+}
+
+function blueBalloon() {
+  var blue = createSprite(0,Math.round(random(20, 370)), 10, 10);
+  blue.addImage(blue_balloonImage);
+  blue.velocityX = 3;
+  blue.lifetime = 150;
+  blue.scale = 0.1;
+  blueB.add(blue);
+}
+
+function greenBalloon() {
+  var green = createSprite(0,Math.round(random(20, 370)), 10, 10);
+  green.addImage(green_balloonImage);
+  green.velocityX = 3;
+  green.lifetime = 150;
+  green.scale = 0.1;
+  greenB.add(green);
+}
+
+function pinkBalloon() {
+  var pink = createSprite(0,Math.round(random(20,  370)), 10, 10);
+  pink.addImage(pink_balloonImage);
+  pink.velocityX = 3;
+  pink.lifetime = 150;
+  pink.scale = 1
+  pinkB.add(pink);
+}
+
+
+// Creating  arrows for bow
+ function createArrow() {
+  var arrow= createSprite(100, 100, 60, 10);
+  arrow.addImage(arrowImage);
+  arrow.x = 360;
+  arrow.y=bow.y;
+  arrow.velocityX = -4;
+  arrow.lifetime = 100;
+  arrow.scale = 0.3;
+  arrowGroup.add(arrow);
+   
+}
